@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Teacher Portal</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <style>
+    /* (CSS is unchanged) */
+    :root { --primary: #2563eb; --primary-dark: #1e40af; --secondary: #64748b; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --bg: #f1f5f9; --card: #ffffff; --text-main: #1e293b; --text-muted: #64748b; --border: #e2e8f0; --radius: 12px; --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+    body { font-family: 'Inter', sans-serif; background-color: var(--bg); margin: 0; padding: 20px 10px; color: var(--text-main); line-height: 1.5; }
+    .container { max-width: 600px; margin: 0 auto; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .header { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); padding: 25px 20px; text-align: center; color: white; }
+    .header h2 { margin: 0; font-size: 1.5rem; font-weight: 700; }
+    form { padding: 25px; }
+    #data-status { text-align: center; font-size: 0.85rem; margin-bottom: 20px; font-weight: 600; }
+    .form-group { margin-bottom: 20px; }
+    label.field-label { display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-main); font-size: 0.9rem; }
+    input[type="text"], textarea { width: 100%; padding: 12px 15px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px; background: #f8fafc; box-sizing: border-box; }
+    .branch-group { display: flex; background: #f1f5f9; padding: 4px; border-radius: 8px; }
+    .branch-group label { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-size: 0.9rem; font-weight: 500; color: var(--text-muted); border-radius: 6px; }
+    .branch-group input { display: none; }
+    .branch-group label:has(input:checked) { background: white; color: var(--primary); font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    #classCheckboxes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .class-option { display: flex; align-items: center; justify-content: center; padding: 12px 5px; background: white; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--text-muted); font-size: 0.9rem; }
+    .class-option:has(input:checked) { background: var(--primary); color: white; border-color: var(--primary); }
+    .class-option input { display: none; }
+    .bulk-actions { display: flex; gap: 10px; margin-bottom: 12px; }
+    .bulk-btn { flex: 1; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid transparent; }
+    .bulk-btn.present { background: #ecfdf5; color: #059669; border-color: #d1fae5; }
+    .bulk-btn.absent { background: #fef2f2; color: #dc2626; border-color: #fee2e2; }
+    #studentListContainer { max-height: 40vh; overflow-y: auto; border: 1px solid var(--border); background: white; border-radius: 8px; display: none; }
+    .class-header { background: #f1f5f9; padding: 10px 15px; position: sticky; top: 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; font-weight: 700; color: var(--text-muted); }
+    .student-item { padding: 12px 15px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; }
+    .student-item label { margin: 0; font-weight: 500; display: flex; align-items: center; gap: 12px; width: 100%; cursor: pointer; color: var(--text-main); }
+    input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); }
+    .lock-section { background-color: #fffbeb; border: 1px solid #fcd34d; color: #92400e; padding: 15px; border-radius: 8px; margin-top: 10px; display: flex; align-items: center; gap: 12px; cursor: pointer; }
+    .lock-section input { width: 20px; height: 20px; accent-color: #d97706; }
+    button { width: 100%; padding: 16px; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 20px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    #submitBtn { background: var(--primary); color: white; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2); }
+    #submitBtn:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; }
+    #postSubmitActions { display: none; gap: 10px; margin-top: 20px; }
+    .btn-new { background: white; color: var(--primary); border: 2px solid var(--primary); }
+    .btn-update { background: var(--warning); color: white; }
+    .loading { display: none; text-align: center; margin-top: 15px; color: var(--text-muted); }
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); z-index: 1000; justify-content: center; align-items: center; }
+    .modal-box { background: white; padding: 40px; border-radius: 16px; text-align: center; width: 85%; max-width: 320px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+    .modal-icon { font-size: 48px; margin-bottom: 15px; display: block; }
+    .modal-text { font-size: 1.2rem; font-weight: 700; color: var(--text-main); }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h2>📢 Teacher Portal</h2>
+    <p>Emergency / Attendance System</p>
+  </div>
+
+  <form id="mainForm">
+    <div id="data-status" style="color: var(--text-muted);">⏳ Connecting to database...</div>
+    
+    <div class="form-group">
+      <label class="field-label">Teacher Name</label>
+      <input type="text" id="teacherName" placeholder="e.g. Mr. Roy" required>
+    </div>
+
+    <div class="form-group">
+      <label class="field-label">Subject</label>
+      <input type="text" id="subject" placeholder="e.g. Mathematics" required>
+    </div>
+
+    <div class="form-group">
+      <label class="field-label">Branch</label>
+      <div class="branch-group">
+        <label><input type="radio" name="branch" value="Science" required> Science</label>
+        <label><input type="radio" name="branch" value="Commerce"> Commerce</label>
+        <label><input type="radio" name="branch" value="Arts"> Arts</label>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="field-label">Select Class</label>
+      <div id="classCheckboxes"></div>
+    </div>
+
+    <div class="form-group">
+      <label class="field-label">Student List</label>
+      <div class="bulk-actions" id="bulkActions" style="display:none;">
+        <div class="bulk-btn present" onclick="toggleAll(true)"><span>✅</span> Present All</div>
+        <div class="bulk-btn absent" onclick="toggleAll(false)"><span>❌</span> Absent All</div>
+      </div>
+      <div id="studentListContainer">
+        <div style="padding: 30px; color:#94a3b8; text-align:center;">Select a class above.</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="field-label">Note / Description (Optional)</label>
+      <textarea id="description" rows="3" placeholder="Any remarks..."></textarea>
+    </div>
+
+    <label class="lock-section">
+      <input type="checkbox" id="closeClass">
+      <div class="lock-text">
+        <strong>Close & Lock Class</strong>
+        <small>Mark finished. Stops future edits.</small>
+      </div>
+    </label>
+
+    <button type="submit" id="submitBtn" disabled>Submit Attendance 🚀</button>
+    <p class="loading" id="loader">Syncing with Google Sheets...</p>
+
+    <div id="postSubmitActions">
+      <button type="button" class="btn-new" onclick="startNew()">➕ New Class</button>
+      <button type="button" class="btn-update" onclick="continueUpdate()">✏️ Add Late Student</button>
+    </div>
+  </form>
+</div>
+
+<div id="statusModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-icon" id="modalIcon">✅</div>
+    <div class="modal-text" id="modalText">Saved!</div>
+  </div>
+</div>
+
+<script>
+  // PASTE YOUR SCRIPT URL HERE
+  const scriptURL = 'https://script.google.com/macros/s/AKfycbw4jkxL4EXMGKrbmL8gnRGW4RSgjTYg4Smw6Ec2mv_AUOBwb-yqXWl8EKJq_Avhm6o9wA/exec'; 
+
+  let allStudents = []; 
+  // NEW: Variable to track if the current class is officially closed
+  let isCurrentClassClosed = false;
+
+  window.addEventListener('load', () => {
+    fetch(scriptURL)
+      .then(response => response.json())
+      .then(data => {
+        allStudents = data; 
+        document.getElementById('data-status').innerHTML = "✅ Database Connected";
+        document.getElementById('data-status').style.color = "var(--success)";
+        document.getElementById('submitBtn').disabled = false;
+        generateClassCheckboxes(); 
+      })
+      .catch(error => {
+        document.getElementById('data-status').innerHTML = "❌ Connection Failed.";
+        document.getElementById('data-status').style.color = "var(--danger)";
+      });
+  });
+
+  const classContainer = document.getElementById('classCheckboxes');
+  function generateClassCheckboxes() {
+    classContainer.innerHTML = "";
+    for (let i = 5; i <= 12; i++) {
+      let label = document.createElement('label');
+      label.className = "class-option"; 
+      label.innerHTML = `<input type="radio" name="classGroup" class="class-selector" value="${i}"> Class ${i}`;
+      classContainer.appendChild(label);
+    }
+    attachClassListeners();
+  }
+
+  const studentContainer = document.getElementById('studentListContainer');
+  const bulkActions = document.getElementById('bulkActions');
+
+  function attachClassListeners() {
+    document.querySelectorAll('.class-selector').forEach(chk => {
+      chk.addEventListener('change', updateStudentList);
+    });
+  }
+
+  function updateStudentList() {
+    studentContainer.style.display = 'block';
+    studentContainer.innerHTML = ''; 
+    let anyChecked = false;
+    const selectedRadio = document.querySelector('.class-selector:checked');
+    
+    if (selectedRadio) {
+      anyChecked = true;
+      let selectedClass = selectedRadio.value; 
+      let filteredStudents = allStudents.filter(s => s.classVal.includes(selectedClass));
+        if(filteredStudents.length > 0) {
+          let header = document.createElement('div');
+          header.className = 'class-header';
+          header.innerText = `Class ${selectedClass}`;
+          studentContainer.appendChild(header);
+          filteredStudents.forEach(std => {
+            let div = document.createElement('div');
+            div.className = 'student-item';
+            div.innerHTML = `<label><input type="checkbox" class="student-checkbox" value="${std.name}" data-phone="${std.phone}" data-class="${selectedClass}"> ${std.name}</label>`;
+            studentContainer.appendChild(div);
+          });
+      }
+    }
+
+    if (anyChecked) {
+      bulkActions.style.display = "flex"; 
+    } else {
+      bulkActions.style.display = "none";
+      studentContainer.innerHTML = '<div style="padding: 30px; color:#94a3b8; text-align:center;">Select a class above.</div>';
+    }
+  }
+
+  function toggleAll(status) {
+    document.querySelectorAll('.student-checkbox').forEach(box => { box.checked = status; });
+  }
+
+  const form = document.getElementById('mainForm');
+  const loader = document.getElementById('loader');
+  const modal = document.getElementById('statusModal');
+  const modalIcon = document.getElementById('modalIcon');
+  const modalText = document.getElementById('modalText');
+  const submitBtn = document.getElementById('submitBtn');
+  const actionBtns = document.getElementById('postSubmitActions');
+
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    loader.style.display = 'block';
+    submitBtn.style.display = 'none';
+
+    let selectedStudents = [];
+    document.querySelectorAll('.student-checkbox:checked').forEach(box => {
+      selectedStudents.push({ name: box.value, phone: box.getAttribute('data-phone'), classVal: box.getAttribute('data-class') });
+    });
+
+    if (selectedStudents.length === 0) {
+       let checkedClasses = document.querySelectorAll('.class-selector:checked');
+       if (checkedClasses.length === 0) {
+         alert("Please select at least one Class.");
+         loader.style.display = 'none';
+         submitBtn.style.display = 'block';
+         return;
+       }
+       checkedClasses.forEach(cls => {
+         selectedStudents.push({ name: "(None/Absent)", phone: "", classVal: cls.value });
+       });
+    }
+
+    let isCloseRequested = document.getElementById('closeClass').checked;
+
+    let payload = {
+      teacher: document.getElementById('teacherName').value,
+      subject: document.getElementById('subject').value,
+      branch: document.querySelector('input[name="branch"]:checked').value,
+      description: document.getElementById('description').value,
+      students: selectedStudents,
+      close: isCloseRequested
+    };
+
+    fetch(scriptURL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    })
+    .then(response => response.text()) 
+    .then(text => {
+      loader.style.display = 'none';
+      
+      if (text.includes("Error:")) {
+        alert(text);
+        submitBtn.style.display = 'flex'; 
+        return;
+      }
+
+      if (text.includes("Success")) {
+        // UPDATE GLOBAL STATE
+        isCurrentClassClosed = isCloseRequested;
+
+        modalIcon.innerHTML = "✅";
+        modalText.innerText = payload.close ? "Saved & Locked!" : "Saved Successfully!";
+        modal.style.display = 'flex';
+        setTimeout(() => {
+          modal.style.display = 'none';
+          actionBtns.style.display = 'flex';
+        }, 1500);
+
+      } else if (text.includes("CLOSED")) {
+        // If backend says it's closed, we trust it
+        isCurrentClassClosed = true; 
+        
+        modalIcon.innerHTML = "🔒";
+        modalText.innerText = "Class is Locked";
+        modal.style.display = 'flex';
+        setTimeout(() => {
+          modal.style.display = 'none';
+          submitBtn.style.display = 'flex';
+        }, 2000);
+      } else {
+        alert("Server Error: " + text);
+        submitBtn.style.display = 'flex';
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Network Error.");
+      loader.style.display = 'none';
+      submitBtn.style.display = 'flex';
+    });
+  });
+
+  // --- NEW: STRICT CHECK BEFORE STARTING NEW CLASS ---
+  function startNew() { 
+    if (!isCurrentClassClosed) {
+      alert("⚠️ You have an OPEN class running!\n\nPlease check the 'Close & Lock Class' box and click Submit to finish this class first.");
+      
+      // Auto-return to update view so they can close it
+      continueUpdate();
+      return;
+    }
+    location.reload(); 
+  }
+  
+  function continueUpdate() { 
+    actionBtns.style.display = 'none'; 
+    submitBtn.style.display = 'flex'; 
+    // Uncheck students so they can select latecomers only
+    document.querySelectorAll('.student-checkbox').forEach(box => { 
+        box.checked = false; 
+    });
+    // Highlight the Lock Box section to remind them
+    document.querySelector('.lock-section').style.border = "2px solid #ef4444";
+    setTimeout(() => {
+       document.querySelector('.lock-section').style.border = "1px solid #fcd34d";
+    }, 2000);
+  }
+</script>
+</body>
+</html>

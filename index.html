@@ -79,7 +79,7 @@
 <div class="container">
   <div class="header">
     <h2>📢 Teacher Portal</h2>
-    <p>Emergency / Attendance System</p>
+    <p> Attendance System</p>
     <div class="queue-btn" onclick="openQueueModal()">
       <span>📂 Active</span>
       <span class="queue-badge" id="queueCount">0</span>
@@ -100,6 +100,7 @@
     </div>
 
     <div class="form-group">
+      
       <label class="field-label">Branch</label>
       <div class="branch-group" id="branchContainer">
         <div style="padding:10px; width:100%; text-align:center; color:#ccc;">Loading branches...</div>
@@ -130,8 +131,8 @@
     <label class="lock-section">
       <input type="checkbox" id="closeClass">
       <div class="lock-text">
-        <strong>Close & Lock Class</strong>
-        <small>Mark finished. Stops future edits.</small>
+        <strong>END Class</strong>
+        <small>Attendance cannot be marked after the class ends; it will be locked.</small>
       </div>
     </label>
 
@@ -451,7 +452,7 @@
 
     // Safety
     if (isCloseRequested && !currentSessionID) {
-        alert("⚠️ Action Blocked: You cannot END a class that hasn't STARTED yet.\n\nPlease uncheck 'Close & Lock Class' and submit as an Active class first.");
+        alert("⚠️ You cannot END a class that hasn't STARTED yet.\n\nPlease uncheck 'Close & Lock Class'.");
         loader.style.display = 'none';
         return; 
     }
@@ -523,3 +524,4 @@
 </script>
 </body>
 </html>
+

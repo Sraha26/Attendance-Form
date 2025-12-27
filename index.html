@@ -5,51 +5,31 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <style>
-    /* --- THEME VARIABLES --- */
+    /* STYLES */
     :root { --primary: #2563eb; --primary-dark: #1e40af; --secondary: #64748b; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --bg: #f1f5f9; --card: #ffffff; --text-main: #1e293b; --text-muted: #64748b; --border: #e2e8f0; --radius: 12px; --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
-    
     body { font-family: 'Inter', sans-serif; background-color: var(--bg); margin: 0; padding: 20px 10px; color: var(--text-main); line-height: 1.5; }
-    
     .container { max-width: 600px; margin: 0 auto; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; position: relative; }
     
-    /* --- HEADER (Fixed Overlap) --- */
-    .header { 
-      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); 
-      /* Added padding-top to give space for the button */
-      padding: 50px 20px 25px 20px; 
-      text-align: center; 
-      color: white; 
-      position: relative; 
-    }
+    .header { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); padding: 50px 20px 25px 20px; text-align: center; color: white; position: relative; }
     .header h2 { margin: 0; font-size: 1.5rem; font-weight: 700; }
     
-    /* QUEUE BUTTON (Positioned Top Right) */
-    .queue-btn {
-      position: absolute; top: 15px; right: 15px;
-      background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.4);
-      color: white; padding: 6px 10px; border-radius: 8px; cursor: pointer;
-      font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 6px;
-      transition: 0.2s; z-index: 10;
-    }
+    .queue-btn { position: absolute; top: 15px; right: 15px; background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.4); color: white; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 6px; transition: 0.2s; z-index: 10; }
     .queue-btn:hover { background: rgba(255, 255, 255, 0.3); }
-    .queue-badge { 
-      background: var(--warning); color: #fff; font-size: 0.75rem; 
-      padding: 2px 6px; border-radius: 10px; display: none; 
-    }
-
+    .queue-badge { background: var(--warning); color: #fff; font-size: 0.75rem; padding: 2px 6px; border-radius: 10px; display: none; }
+    
     form { padding: 25px; }
     #data-status { text-align: center; font-size: 0.85rem; margin-bottom: 20px; font-weight: 600; }
-    
     .form-group { margin-bottom: 20px; }
     label.field-label { display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-main); font-size: 0.9rem; }
-    
     input[type="text"], textarea { width: 100%; padding: 12px 15px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px; background: #f8fafc; box-sizing: border-box; }
     
-    .branch-group { display: flex; background: #f1f5f9; padding: 4px; border-radius: 8px; }
-    .branch-group label { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-size: 0.9rem; font-weight: 500; color: var(--text-muted); border-radius: 6px; }
+    /* VERTICAL BRANCH BUTTONS */
+    .branch-group { display: flex; flex-direction: column; gap: 10px; background: #f1f5f9; padding: 10px; border-radius: 8px; }
+    .branch-group label { width: 100%; text-align: center; padding: 14px; cursor: pointer; font-size: 0.95rem; font-weight: 600; color: var(--text-muted); background: white; border: 1px solid var(--border); border-radius: 8px; transition: all 0.2s; box-sizing: border-box; }
     .branch-group input { display: none; }
-    .branch-group label:has(input:checked) { background: white; color: var(--primary); font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .branch-group label:has(input:checked) { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2); }
     
+    /* CLASS GRID */
     #classCheckboxes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
     .class-option { display: flex; align-items: center; justify-content: center; padding: 12px 5px; background: white; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--text-muted); font-size: 0.9rem; }
     .class-option:has(input:checked) { background: var(--primary); color: white; border-color: var(--primary); }
@@ -76,14 +56,13 @@
     #postSubmitActions { display: none; gap: 10px; margin-top: 20px; }
     .btn-new { background: white; color: var(--primary); border: 2px solid var(--primary); }
     .btn-update { background: var(--warning); color: white; }
-    
     .loading { display: none; text-align: center; margin-top: 15px; color: var(--text-muted); }
     
-    /* --- MODAL STYLES --- */
+    #debugBox { font-size: 0.75rem; background: #eee; padding: 10px; margin-top: 20px; border-radius: 8px; color: #333; display: none; }
+
+    /* MODALS */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(3px); }
     .modal-box { background: white; padding: 30px; border-radius: 16px; text-align: center; width: 85%; max-width: 350px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); max-height: 80vh; overflow-y: auto; }
-    
-    /* Queue List Styles */
     .queue-list { list-style: none; padding: 0; margin: 0; text-align: left; }
     .queue-item { background: #f8fafc; border: 1px solid var(--border); padding: 12px; border-radius: 8px; margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
     .queue-item:hover { border-color: var(--primary); background: #f0f9ff; }
@@ -99,7 +78,6 @@
   <div class="header">
     <h2>📢 Teacher Portal</h2>
     <p>Emergency / Attendance System</p>
-    
     <div class="queue-btn" onclick="openQueueModal()">
       <span>📂 Active</span>
       <span class="queue-badge" id="queueCount">0</span>
@@ -121,10 +99,8 @@
 
     <div class="form-group">
       <label class="field-label">Branch</label>
-      <div class="branch-group">
-        <label><input type="radio" name="branch" value="Science" required> Science</label>
-        <label><input type="radio" name="branch" value="Commerce"> Commerce</label>
-        <label><input type="radio" name="branch" value="Arts"> Arts</label>
+      <div class="branch-group" id="branchContainer">
+        <div style="padding:10px; width:100%; text-align:center; color:#ccc;">Loading branches...</div>
       </div>
     </div>
 
@@ -140,7 +116,7 @@
         <div class="bulk-btn absent" onclick="toggleAll(false)"><span>❌</span> Absent All</div>
       </div>
       <div id="studentListContainer">
-        <div style="padding: 30px; color:#94a3b8; text-align:center;">Select a class above.</div>
+        <div style="padding: 30px; color:#94a3b8; text-align:center;">Select Branch and Class above.</div>
       </div>
     </div>
 
@@ -160,6 +136,8 @@
     <button type="submit" id="submitBtn" disabled>Submit Attendance 🚀</button>
     <p class="loading" id="loader">Syncing with Google Sheets...</p>
 
+    <div id="debugBox"></div>
+
     <div id="postSubmitActions">
       <button type="button" class="btn-new" onclick="startNew()">➕ New Class</button>
       <button type="button" class="btn-update" onclick="continueUpdate()">✏️ Add Late Student</button>
@@ -178,48 +156,29 @@
   <div class="modal-box">
     <h3 style="margin-top:0;">📂 Active Classes</h3>
     <p style="font-size:0.85rem; color:#666;">Click to resume & close a class.</p>
-    <ul class="queue-list" id="queueList">
-      </ul>
+    <ul class="queue-list" id="queueList"></ul>
     <button class="close-modal-btn" onclick="document.getElementById('queueModal').style.display='none'">Close</button>
   </div>
 </div>
 
 <script>
   // --- CONFIGURATION ---
-  const scriptURL = 'https://script.google.com/macros/s/AKfycbw4jkxL4EXMGKrbmL8gnRGW4RSgjTYg4Smw6Ec2mv_AUOBwb-yqXWl8EKJq_Avhm6o9wA/exec'; 
+  // PASTE YOUR DEPLOYED URL HERE
+  const scriptURL = 'https://script.google.com/macros/s/AKfycbw1DEvwlEYBhK0BgxEY5fr1ET3GxzVxjU8a81Wfgus7GeMl98TucvuXoodVNuDtfeN6eA/exec'; 
 
   let allStudents = []; 
-  let currentSessionID = null; // Tracks unique ID of current editing session
+  let currentSessionID = null; 
 
-  // --- LOCAL STORAGE MANAGER ---
   const LS_KEY = "teacherPortal_queue";
-
-  function getQueue() {
-    return JSON.parse(localStorage.getItem(LS_KEY) || "[]");
-  }
+  function getQueue() { return JSON.parse(localStorage.getItem(LS_KEY) || "[]"); }
 
   function saveToQueue(payload) {
     let queue = getQueue();
-    // Unique ID based on Teacher + Subject + Class (to mimic backend logic)
-    if (!currentSessionID) {
-      currentSessionID = Date.now().toString(); // Generate new ID
-    }
-    
-    // Check if session exists, update it
+    if (!currentSessionID) currentSessionID = Date.now().toString(); 
     const index = queue.findIndex(q => q.id === currentSessionID);
-    
-    const sessionData = {
-      id: currentSessionID,
-      payload: payload,
-      timestamp: new Date().toLocaleString()
-    };
-
-    if (index > -1) {
-      queue[index] = sessionData;
-    } else {
-      queue.push(sessionData);
-    }
-    
+    const sessionData = { id: currentSessionID, payload: payload, timestamp: new Date().toLocaleString() };
+    if (index > -1) queue[index] = sessionData;
+    else queue.push(sessionData);
     localStorage.setItem(LS_KEY, JSON.stringify(queue));
     updateQueueUI();
   }
@@ -239,26 +198,18 @@
     countEl.style.display = queue.length > 0 ? 'inline-block' : 'none';
   }
 
-  // --- QUEUE MODAL LOGIC ---
   function openQueueModal() {
     const queue = getQueue();
     const listEl = document.getElementById('queueList');
     listEl.innerHTML = "";
-
-    if (queue.length === 0) {
-      listEl.innerHTML = "<li class='q-empty'>No unended active classes.</li>";
-    } else {
+    if (queue.length === 0) listEl.innerHTML = "<li class='q-empty'>No unended active classes.</li>";
+    else {
       queue.forEach(item => {
         const p = item.payload;
-        let className = "Unknown Class";
-        if(p.students.length > 0) className = "Class " + p.students[0].classVal;
-
+        let className = p.students.length > 0 ? p.students[0].classVal : "Unknown";
         const li = document.createElement('li');
         li.className = 'queue-item';
-        li.innerHTML = `
-          <div class="q-title">${p.teacher} - ${p.subject}</div>
-          <div class="q-meta">${className} • ${item.timestamp}</div>
-        `;
+        li.innerHTML = `<div class="q-title">${p.teacher} - ${p.subject}</div><div class="q-meta">${className} • ${p.branch} • ${item.timestamp}</div>`;
         li.onclick = () => loadSessionFromQueue(item);
         listEl.appendChild(li);
       });
@@ -267,38 +218,31 @@
   }
 
   function loadSessionFromQueue(session) {
-    // 1. Restore Data
     const p = session.payload;
     document.getElementById('teacherName').value = p.teacher;
     document.getElementById('subject').value = p.subject;
     document.getElementById('description').value = p.description;
     
-    // Restore Branch
-    const branchRad = document.querySelector(`input[name="branch"][value="${p.branch}"]`);
-    if(branchRad) branchRad.checked = true;
+    setTimeout(() => {
+        const branchRad = document.querySelector(`input[name="branch"][value="${p.branch}"]`);
+        if(branchRad) branchRad.checked = true;
+    }, 500);
 
-    // Restore Class Selection
     if (p.students.length > 0) {
         const clsVal = p.students[0].classVal;
         const clsRad = document.querySelector(`.class-selector[value="${clsVal}"]`);
         if(clsRad) {
             clsRad.checked = true;
-            updateStudentList(); // Trigger list render
+            updateStudentList(); 
         }
-
-        // Restore Student Checkboxes
         setTimeout(() => {
             const studentNames = p.students.map(s => s.name);
             document.querySelectorAll('.student-checkbox').forEach(box => {
-                if (studentNames.includes(box.value)) {
-                    box.checked = true;
-                }
+                if (studentNames.includes(box.value)) box.checked = true;
             });
-            // Show submit button, hide actions BUT DO NOT CLEAR CHECKBOXES
             continueUpdate(false); 
-        }, 100);
+        }, 600);
     }
-
     currentSessionID = session.id;
     document.getElementById('queueModal').style.display = 'none';
   }
@@ -309,68 +253,110 @@
     fetch(scriptURL)
       .then(response => response.json())
       .then(data => {
-        allStudents = data; 
+        if(data.error) {
+             alert(data.error);
+             document.getElementById('branchContainer').innerHTML = `<div style="color:red; padding:10px;">${data.error}</div>`;
+             return;
+        }
+
+        if (data.students && data.branches) {
+          allStudents = data.students;
+          renderBranches(data.branches);
+        } else {
+          alert("Received unexpected data format from Google Sheet.");
+        }
         document.getElementById('data-status').innerHTML = "✅ Database Connected";
         document.getElementById('data-status').style.color = "var(--success)";
         document.getElementById('submitBtn').disabled = false;
         generateClassCheckboxes(); 
       })
       .catch(error => {
+        console.error(error);
         document.getElementById('data-status').innerHTML = "❌ Connection Failed.";
         document.getElementById('data-status').style.color = "var(--danger)";
       });
   });
 
-  const classContainer = document.getElementById('classCheckboxes');
+  function renderBranches(branchList) {
+    const container = document.getElementById('branchContainer');
+    container.innerHTML = ''; 
+    
+    if(!branchList || branchList.length === 0) {
+        container.innerHTML = '<div style="padding:10px; color:red;">No branches found</div>';
+        return;
+    }
+    branchList.sort();
+
+    branchList.forEach(branchName => {
+        const label = document.createElement('label');
+        label.innerHTML = `<input type="radio" name="branch" class="branch-selector" value="${branchName}" required> ${branchName}`;
+        container.appendChild(label);
+    });
+    
+    document.querySelectorAll('.branch-selector').forEach(b => {
+        b.addEventListener('change', updateStudentList);
+    });
+  }
+
+  // --- MATCHES "Class 10" FORMAT ---
   function generateClassCheckboxes() {
+    const classContainer = document.getElementById('classCheckboxes');
     classContainer.innerHTML = "";
     for (let i = 5; i <= 12; i++) {
       let label = document.createElement('label');
       label.className = "class-option"; 
-      label.innerHTML = `<input type="radio" name="classGroup" class="class-selector" value="${i}"> Class ${i}`;
+      label.innerHTML = `<input type="radio" name="classGroup" class="class-selector" value="Class ${i}"> Class ${i}`;
       classContainer.appendChild(label);
     }
-    attachClassListeners();
-  }
-
-  const studentContainer = document.getElementById('studentListContainer');
-  const bulkActions = document.getElementById('bulkActions');
-
-  function attachClassListeners() {
     document.querySelectorAll('.class-selector').forEach(chk => {
       chk.addEventListener('change', updateStudentList);
     });
   }
 
   function updateStudentList() {
+    const studentContainer = document.getElementById('studentListContainer');
+    const bulkActions = document.getElementById('bulkActions');
+    
     studentContainer.style.display = 'block';
     studentContainer.innerHTML = ''; 
-    let anyChecked = false;
-    const selectedRadio = document.querySelector('.class-selector:checked');
     
-    if (selectedRadio) {
-      anyChecked = true;
-      let selectedClass = selectedRadio.value; 
-      let filteredStudents = allStudents.filter(s => s.classVal.includes(selectedClass));
-        if(filteredStudents.length > 0) {
+    const selectedClassRadio = document.querySelector('.class-selector:checked');
+    const selectedBranchRadio = document.querySelector('.branch-selector:checked');
+
+    if (selectedClassRadio && selectedBranchRadio) {
+      
+      const selClass = selectedClassRadio.value.toString().trim().toLowerCase(); 
+      const selBranch = selectedBranchRadio.value.toString().trim().toLowerCase();
+
+      let filteredStudents = allStudents.filter(s => {
+          let sClass = s.classVal.toString().trim().toLowerCase();
+          let sBranch = s.branchVal.toString().trim().toLowerCase();
+          return sClass == selClass && sBranch == selBranch;
+      });
+
+      if(filteredStudents.length > 0) {
           let header = document.createElement('div');
           header.className = 'class-header';
-          header.innerText = `Class ${selectedClass}`;
+          header.innerText = `${selectedBranchRadio.value} - ${selectedClassRadio.value}`;
           studentContainer.appendChild(header);
+
           filteredStudents.forEach(std => {
             let div = document.createElement('div');
             div.className = 'student-item';
-            div.innerHTML = `<label><input type="checkbox" class="student-checkbox" value="${std.name}" data-phone="${std.phone}" data-class="${selectedClass}"> ${std.name}</label>`;
+            div.innerHTML = `<label><input type="checkbox" class="student-checkbox" value="${std.name}" data-phone="${std.phone}" data-class="${std.classVal}"> ${std.name}</label>`;
             studentContainer.appendChild(div);
           });
+          bulkActions.style.display = "flex"; 
+      } else {
+         studentContainer.innerHTML = `<div style="padding: 30px; color:#94a3b8; text-align:center;">
+           No students found.<br>
+           <small>(Checked: ${selectedClassRadio.value}, ${selectedBranchRadio.value})</small>
+         </div>`;
+         bulkActions.style.display = "none";
       }
-    }
-
-    if (anyChecked) {
-      bulkActions.style.display = "flex"; 
     } else {
       bulkActions.style.display = "none";
-      studentContainer.innerHTML = '<div style="padding: 30px; color:#94a3b8; text-align:center;">Select a class above.</div>';
+      studentContainer.innerHTML = '<div style="padding: 30px; color:#94a3b8; text-align:center;">Please select <b>both</b> a Branch and a Class.</div>';
     }
   }
 
@@ -392,6 +378,14 @@
     loader.style.display = 'block';
     submitBtn.style.display = 'none';
 
+    const branchInput = document.querySelector('input[name="branch"]:checked');
+    if(!branchInput) {
+        alert("Please select a Branch.");
+        loader.style.display = 'none';
+        submitBtn.style.display = 'block';
+        return;
+    }
+
     let selectedStudents = [];
     document.querySelectorAll('.student-checkbox:checked').forEach(box => {
       selectedStudents.push({ name: box.value, phone: box.getAttribute('data-phone'), classVal: box.getAttribute('data-class') });
@@ -410,31 +404,34 @@
 
     let isCloseRequested = document.getElementById('closeClass').checked;
 
+    // --- NEW SAFETY CHECK HERE ---
+    // If user tries to CLOSE the class, but it is NOT currently active (not in queue), stop them.
+    if (isCloseRequested && !currentSessionID) {
+        alert("⚠️ Action Blocked: You cannot END a class that hasn't STARTED yet.\n\nPlease uncheck 'Close & Lock Class' and submit as an Active class first.");
+        loader.style.display = 'none';
+        submitBtn.style.display = 'block';
+        return; 
+    }
+
     let payload = {
       teacher: document.getElementById('teacherName').value,
       subject: document.getElementById('subject').value,
-      branch: document.querySelector('input[name="branch"]:checked').value,
+      branch: branchInput.value,
       description: document.getElementById('description').value,
       students: selectedStudents,
       close: isCloseRequested
     };
 
-    fetch(scriptURL, {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    })
+    fetch(scriptURL, { method: 'POST', body: JSON.stringify(payload) })
     .then(response => response.text()) 
     .then(text => {
       loader.style.display = 'none';
-      
       if (text.includes("Error:")) {
         alert(text);
         submitBtn.style.display = 'flex'; 
         return;
       }
-
       if (text.includes("Success")) {
-        // --- LOCAL STORAGE LOGIC ---
         if (isCloseRequested) {
           if (currentSessionID) removeFromQueue(currentSessionID);
         } else {
@@ -446,11 +443,8 @@
         modal.style.display = 'flex';
         setTimeout(() => {
           modal.style.display = 'none';
-          if (!isCloseRequested) {
-             actionBtns.style.display = 'flex';
-          } else {
-             startNew();
-          }
+          if (!isCloseRequested) actionBtns.style.display = 'flex';
+          else startNew();
         }, 1500);
 
       } else if (text.includes("CLOSED")) {
@@ -458,10 +452,7 @@
         modalIcon.innerHTML = "🔒";
         modalText.innerText = "Class is Locked";
         modal.style.display = 'flex';
-        setTimeout(() => {
-          modal.style.display = 'none';
-          submitBtn.style.display = 'flex';
-        }, 2000);
+        setTimeout(() => { modal.style.display = 'none'; submitBtn.style.display = 'flex'; }, 2000);
       } else {
         alert("Server Error: " + text);
         submitBtn.style.display = 'flex';
@@ -476,25 +467,14 @@
   });
 
   function startNew() {
-     if (currentSessionID) {
-         currentSessionID = null; 
-         location.reload(); 
-     } else {
-         location.reload();
-     }
+     if (currentSessionID) { currentSessionID = null; location.reload(); } else { location.reload(); }
   }
   
-  // FIXED: Added parameter to decide whether to clear checkboxes or not
   function continueUpdate(clearBoxes = true) { 
     actionBtns.style.display = 'none'; 
     submitBtn.style.display = 'flex'; 
-    
-    // Only uncheck if explicitly asked (Default behavior for post-submit)
-    // When loading from Queue, we pass false to keep them checked.
     if(clearBoxes) {
-        document.querySelectorAll('.student-checkbox').forEach(box => { 
-            box.checked = false; 
-        });
+        document.querySelectorAll('.student-checkbox').forEach(box => { box.checked = false; });
     }
   }
 </script>

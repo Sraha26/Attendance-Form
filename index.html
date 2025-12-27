@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <style>
-    /* STYLES */
+    /* --- CSS STYLES --- */
     :root { --primary: #2563eb; --primary-dark: #1e40af; --secondary: #64748b; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --bg: #f1f5f9; --card: #ffffff; --text-main: #1e293b; --text-muted: #64748b; --border: #e2e8f0; --radius: 12px; --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
     body { font-family: 'Inter', sans-serif; background-color: var(--bg); margin: 0; padding: 20px 10px; color: var(--text-main); line-height: 1.5; }
     .container { max-width: 600px; margin: 0 auto; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; position: relative; }
@@ -53,9 +53,11 @@
     #submitBtn { background: var(--primary); color: white; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2); }
     #submitBtn:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; }
     
+    /* Post-Submit Action Buttons */
     #postSubmitActions { display: none; gap: 10px; margin-top: 20px; }
     .btn-new { background: white; color: var(--primary); border: 2px solid var(--primary); }
     .btn-update { background: var(--warning); color: white; }
+    
     .loading { display: none; text-align: center; margin-top: 15px; color: var(--text-muted); }
     
     #debugBox { font-size: 0.75rem; background: #eee; padding: 10px; margin-top: 20px; border-radius: 8px; color: #333; display: none; }
@@ -139,8 +141,8 @@
     <div id="debugBox"></div>
 
     <div id="postSubmitActions">
+      <button type="button" class="btn-update" id="addLateBtn" onclick="handleAddLate()">✏️ Add Late Student</button>
       <button type="button" class="btn-new" onclick="startNew()">➕ New Class</button>
-      <button type="button" class="btn-update" onclick="continueUpdate()">✏️ Add Late Student</button>
     </div>
   </form>
 </div>
@@ -163,7 +165,6 @@
 
 <script>
   // --- CONFIGURATION ---
-  // PASTE YOUR DEPLOYED URL HERE
   const scriptURL = 'https://script.google.com/macros/s/AKfycbw1DEvwlEYBhK0BgxEY5fr1ET3GxzVxjU8a81Wfgus7GeMl98TucvuXoodVNuDtfeN6eA/exec'; 
 
   let allStudents = []; 
@@ -172,6 +173,32 @@
   const LS_KEY = "teacherPortal_queue";
   function getQueue() { return JSON.parse(localStorage.getItem(LS_KEY) || "[]"); }
 
+  // --- DYNAMIC BUTTON TEXT LOGIC ---
+  const closeCheckbox = document.getElementById('closeClass');
+  const submitBtn = document.getElementById('submitBtn');
+  const addLateBtn = document.getElementById('addLateBtn');
+
+  // CHANGE 1: Toggle Button Text based on Checkbox
+  closeCheckbox.addEventListener('change', function() {
+      if (this.checked) {
+          // If checkbox is ticked, change submit button text
+          submitBtn.innerHTML = "End Class 🏁";
+          submitBtn.style.backgroundColor = "#d97706"; // Orange/Warning
+          
+          // Also change the "Add Late Student" button text if visible
+          addLateBtn.innerHTML = "End Class 🏁";
+          addLateBtn.style.backgroundColor = "#d97706";
+      } else {
+          // Reset to default
+          submitBtn.innerHTML = "Submit Attendance 🚀";
+          submitBtn.style.backgroundColor = ""; 
+          
+          addLateBtn.innerHTML = "✏️ Add Late Student";
+          addLateBtn.style.backgroundColor = ""; // Reset to default warning color defined in CSS
+      }
+  });
+
+  // --- QUEUE LOGIC ---
   function saveToQueue(payload) {
     let queue = getQueue();
     if (!currentSessionID) currentSessionID = Date.now().toString(); 
@@ -218,33 +245,47 @@
   }
 
   function loadSessionFromQueue(session) {
+    if(allStudents.length === 0) {
+        alert("The student database is still loading... please wait 5 seconds and try again.");
+        return;
+    }
+
     const p = session.payload;
     document.getElementById('teacherName').value = p.teacher;
     document.getElementById('subject').value = p.subject;
     document.getElementById('description').value = p.description;
     
-    setTimeout(() => {
-        const branchRad = document.querySelector(`input[name="branch"][value="${p.branch}"]`);
-        if(branchRad) branchRad.checked = true;
-    }, 500);
+    // Select Branch
+    const branchRad = document.querySelector(`input[name="branch"][value="${p.branch}"]`);
+    if(branchRad) branchRad.checked = true;
 
+    // Select Class & Force Update
+    let savedClass = "";
     if (p.students.length > 0) {
-        const clsVal = p.students[0].classVal;
-        const clsRad = document.querySelector(`.class-selector[value="${clsVal}"]`);
+        savedClass = p.students[0].classVal; 
+    }
+
+    if (savedClass) {
+        const clsRad = document.querySelector(`.class-selector[value="${savedClass}"]`);
         if(clsRad) {
             clsRad.checked = true;
-            updateStudentList(); 
-        }
-        setTimeout(() => {
+            updateStudentList();
+            
             const studentNames = p.students.map(s => s.name);
             document.querySelectorAll('.student-checkbox').forEach(box => {
-                if (studentNames.includes(box.value)) box.checked = true;
+                if (studentNames.includes(box.value)) {
+                    box.checked = true;
+                }
             });
-            continueUpdate(false); 
-        }, 600);
+        }
     }
+
     currentSessionID = session.id;
     document.getElementById('queueModal').style.display = 'none';
+    
+    // Show post-submit actions immediately since it's an active class
+    document.getElementById('submitBtn').style.display = 'none';
+    document.getElementById('postSubmitActions').style.display = 'flex';
   }
 
   // --- INITIALIZATION ---
@@ -263,7 +304,7 @@
           allStudents = data.students;
           renderBranches(data.branches);
         } else {
-          alert("Received unexpected data format from Google Sheet.");
+          alert("Received unexpected data format.");
         }
         document.getElementById('data-status').innerHTML = "✅ Database Connected";
         document.getElementById('data-status').style.color = "var(--success)";
@@ -280,25 +321,17 @@
   function renderBranches(branchList) {
     const container = document.getElementById('branchContainer');
     container.innerHTML = ''; 
-    
-    if(!branchList || branchList.length === 0) {
-        container.innerHTML = '<div style="padding:10px; color:red;">No branches found</div>';
-        return;
-    }
     branchList.sort();
-
     branchList.forEach(branchName => {
         const label = document.createElement('label');
         label.innerHTML = `<input type="radio" name="branch" class="branch-selector" value="${branchName}" required> ${branchName}`;
         container.appendChild(label);
     });
-    
     document.querySelectorAll('.branch-selector').forEach(b => {
         b.addEventListener('change', updateStudentList);
     });
   }
 
-  // --- MATCHES "Class 10" FORMAT ---
   function generateClassCheckboxes() {
     const classContainer = document.getElementById('classCheckboxes');
     classContainer.innerHTML = "";
@@ -316,9 +349,11 @@
   function updateStudentList() {
     const studentContainer = document.getElementById('studentListContainer');
     const bulkActions = document.getElementById('bulkActions');
+    const debugBox = document.getElementById('debugBox');
     
     studentContainer.style.display = 'block';
     studentContainer.innerHTML = ''; 
+    debugBox.style.display = 'none'; 
     
     const selectedClassRadio = document.querySelector('.class-selector:checked');
     const selectedBranchRadio = document.querySelector('.branch-selector:checked');
@@ -353,6 +388,12 @@
            <small>(Checked: ${selectedClassRadio.value}, ${selectedBranchRadio.value})</small>
          </div>`;
          bulkActions.style.display = "none";
+         
+         if(allStudents.length > 0) {
+            debugBox.style.display = 'block';
+            let sample = allStudents.slice(0, 3).map(s => `${s.name} [${s.branchVal}, ${s.classVal}]`).join("<br>");
+            debugBox.innerHTML = `<strong>DEBUG (First 3 students):</strong><br>${sample}`;
+         }
       }
     } else {
       bulkActions.style.display = "none";
@@ -370,21 +411,30 @@
   const modal = document.getElementById('statusModal');
   const modalIcon = document.getElementById('modalIcon');
   const modalText = document.getElementById('modalText');
-  const submitBtn = document.getElementById('submitBtn');
   const actionBtns = document.getElementById('postSubmitActions');
 
   form.addEventListener('submit', e => {
     e.preventDefault();
-    loader.style.display = 'block';
-    submitBtn.style.display = 'none';
+    handleSubmit();
+  });
 
+  // CHANGE 2: "Add Late Student" simply triggers the form submission logic
+  function handleAddLate() {
+      // If checkbox is checked, this button acts as "End Class"
+      if (document.getElementById('closeClass').checked) {
+          handleSubmit(); 
+      } else {
+          // If NOT checked, it acts as "Add Late Student" (Submit but keep page open)
+          handleSubmit(true); 
+      }
+  }
+
+  function handleSubmit(keepOpen = false) {
+    loader.style.display = 'block';
+    
+    // Validation
     const branchInput = document.querySelector('input[name="branch"]:checked');
-    if(!branchInput) {
-        alert("Please select a Branch.");
-        loader.style.display = 'none';
-        submitBtn.style.display = 'block';
-        return;
-    }
+    if(!branchInput) { alert("Select Branch"); loader.style.display='none'; return; }
 
     let selectedStudents = [];
     document.querySelectorAll('.student-checkbox:checked').forEach(box => {
@@ -393,23 +443,16 @@
 
     if (selectedStudents.length === 0) {
        let selectedRadio = document.querySelector('.class-selector:checked');
-       if (!selectedRadio) {
-         alert("Please select a Class.");
-         loader.style.display = 'none';
-         submitBtn.style.display = 'block';
-         return;
-       }
+       if (!selectedRadio) { alert("Select Class"); loader.style.display='none'; return; }
        selectedStudents.push({ name: "(None/Absent)", phone: "", classVal: selectedRadio.value });
     }
 
     let isCloseRequested = document.getElementById('closeClass').checked;
 
-    // --- NEW SAFETY CHECK HERE ---
-    // If user tries to CLOSE the class, but it is NOT currently active (not in queue), stop them.
+    // Safety
     if (isCloseRequested && !currentSessionID) {
         alert("⚠️ Action Blocked: You cannot END a class that hasn't STARTED yet.\n\nPlease uncheck 'Close & Lock Class' and submit as an Active class first.");
         loader.style.display = 'none';
-        submitBtn.style.display = 'block';
         return; 
     }
 
@@ -426,53 +469,53 @@
     .then(response => response.text()) 
     .then(text => {
       loader.style.display = 'none';
-      if (text.includes("Error:")) {
-        alert(text);
-        submitBtn.style.display = 'flex'; 
-        return;
-      }
+      if (text.includes("Error:")) { alert(text); return; }
+      
       if (text.includes("Success")) {
         if (isCloseRequested) {
+          // END CLASS LOGIC
           if (currentSessionID) removeFromQueue(currentSessionID);
+          modalIcon.innerHTML = "🏁";
+          modalText.innerText = "Class Ended!";
+          modal.style.display = 'flex';
+          setTimeout(() => { startNew(); }, 1500); // Reload to start new
         } else {
+          // SAVE & CONTINUE LOGIC
           saveToQueue(payload);
+          modalIcon.innerHTML = "✅";
+          modalText.innerText = keepOpen ? "Student Added!" : "Saved & Active!";
+          modal.style.display = 'flex';
+          
+          setTimeout(() => {
+            modal.style.display = 'none';
+            // IMPORTANT: Stay on same page, show action buttons
+            document.getElementById('submitBtn').style.display = 'none';
+            actionBtns.style.display = 'flex';
+            
+            // Clear checks if it was just "Add Late Student" to prepare for next late entry?
+            // Actually, keep them checked so teacher sees who is present.
+            // If you want to clear ONLY for "Add Late", uncomment below:
+            // if(keepOpen) document.querySelectorAll('.student-checkbox').forEach(box => box.checked = false);
+          }, 1000);
         }
-        
-        modalIcon.innerHTML = "✅";
-        modalText.innerText = isCloseRequested ? "Saved & Locked!" : "Saved & Active!";
-        modal.style.display = 'flex';
-        setTimeout(() => {
-          modal.style.display = 'none';
-          if (!isCloseRequested) actionBtns.style.display = 'flex';
-          else startNew();
-        }, 1500);
 
       } else if (text.includes("CLOSED")) {
+        alert("This class is already closed.");
         if(currentSessionID) removeFromQueue(currentSessionID);
-        modalIcon.innerHTML = "🔒";
-        modalText.innerText = "Class is Locked";
-        modal.style.display = 'flex';
-        setTimeout(() => { modal.style.display = 'none'; submitBtn.style.display = 'flex'; }, 2000);
-      } else {
-        alert("Server Error: " + text);
-        submitBtn.style.display = 'flex';
+        startNew();
       }
     })
-    .catch(err => {
-      console.error(err);
-      alert("Network Error.");
-      loader.style.display = 'none';
-      submitBtn.style.display = 'flex';
-    });
-  });
+    .catch(err => { console.error(err); alert("Network Error"); loader.style.display='none'; });
+  }
 
   function startNew() {
      if (currentSessionID) { currentSessionID = null; location.reload(); } else { location.reload(); }
   }
   
   function continueUpdate(clearBoxes = true) { 
-    actionBtns.style.display = 'none'; 
-    submitBtn.style.display = 'flex'; 
+    // This function can be used if you want to manually "Reset" for adding more
+    document.getElementById('postSubmitActions').style.display = 'none'; 
+    document.getElementById('submitBtn').style.display = 'flex'; 
     if(clearBoxes) {
         document.querySelectorAll('.student-checkbox').forEach(box => { box.checked = false; });
     }
